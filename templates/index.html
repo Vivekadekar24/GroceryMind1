@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GroceryMind</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    margin:0;
+    background:#f4f4f4;
+}
+
+header{
+    background:#15803d;
+    color:white;
+    padding:20px;
+    text-align:center;
+}
+
+.container{
+    width:90%;
+    margin:auto;
+    margin-top:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+textarea{
+    width:100%;
+    height:180px;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    background:#15803d;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+button:hover{
+    background:#166534;
+}
+
+.metrics{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+}
+
+.metric{
+    background:white;
+    padding:20px;
+    text-align:center;
+    border-radius:10px;
+}
+
+.metric h2{
+    color:#15803d;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+th{
+    background:#15803d;
+    color:white;
+}
+
+.pill{
+    display:inline-block;
+    background:#dcfce7;
+    color:#14532d;
+    padding:5px 10px;
+    border-radius:20px;
+    margin:2px;
+    font-size:12px;
+}
+
+.dark{
+    background:#0f172a;
+    color:white;
+}
+
+.dark .card,
+.dark .metric{
+    background:#1e293b;
+    color:white;
+}
+
+.dark textarea{
+    background:#334155;
+    color:white;
+}
+/* ───────────────────────────────────── */
+/* Recommendation Section */
+/* ───────────────────────────────────── */
+
+.recommendation-section{
+    width:90%;
+    margin:auto;
+    margin-top:30px;
+    margin-bottom:40px;
+}
+
+.recommendation-card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.recommendation-card h2{
+    color:#15803d;
+    margin-bottom:10px;
+}
+
+.recommendation-card p{
+    color:#555;
+    margin-bottom:15px;
+    line-height:1.6;
+}
+
+.recommendation-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+.recommendation-table th{
+    background:#15803d;
+    color:white;
+    padding:12px;
+    text-align:center;
+}
+
+.recommendation-table td{
+    padding:12px;
+    border:1px solid #ddd;
+    text-align:center;
+}
+
+.recommendation-table tr:nth-child(even){
+    background:#f9f9f9;
+}
+
+.formula-box{
+    margin-top:25px;
+    background:#f0fdf4;
+    padding:20px;
+    border-radius:10px;
+    border-left:5px solid #15803d;
+}
+
+.formula-box h3{
+    color:#166534;
+    margin-bottom:10px;
+}
+
+.formula-box p{
+    margin:8px 0;
+    font-family:monospace;
+    color:#111827;
+}
+
+/* Dark Mode Support */
+
+.dark .recommendation-card{
+    background:#1e293b;
+    color:white;
+}
+
+.dark .recommendation-card p{
+    color:#cbd5e1;
+}
+
+.dark .recommendation-table td{
+    border-color:#334155;
+}
+
+.dark .recommendation-table tr:nth-child(even){
+    background:#334155;
+}
+
+.dark .formula-box{
+    background:#334155;
+    border-left:5px solid #22c55e;
+}
+
+.dark .formula-box p{
+    color:white;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🛒 GroceryMind</h1>
+    <p>Apriori Algorithm Market Basket Analysis</p>
+
+    <button onclick="toggleTheme()" id="theme-btn">
+    🌙 Dark Mode
+</button>
+</header>
+
+<div class="container">
+
+    <div class="card">
+
+        <h3>Transaction Dataset</h3>
+
+        <textarea id="txn-input"></textarea>
+
+        <br>
+
+    
+
+        <br>
+
+        <label>Min Support</label>
+
+        <input type="range" id="support" min="1" max="80" value="30">
+
+        <span id="support-val">30%</span>
+
+        <br><br>
+
+        <label>Min Confidence</label>
+
+        <input type="range" id="confidence" min="20" max="100" value="60">
+
+        <span id="confidence-val">60%</span>
+
+        <br><br>
+
+        <button onclick="loadDefault()">
+            Load Sample
+        </button>
+
+        <button onclick="runMining()">
+            Mine Rules
+        </button>
+
+        <button onclick="downloadRules()">
+            Download Rules
+        </button>
+
+    </div>
+
+    <div class="metrics">
+
+        <div class="metric">
+            <h2 id="txn-count">0</h2>
+            <p>Transactions</p>
+        </div>
+
+        <div class="metric">
+            <h2 id="item-count">0</h2>
+            <p>Items</p>
+        </div>
+
+        <div class="metric">
+            <h2 id="freq-count">0</h2>
+            <p>Frequent Sets</p>
+        </div>
+
+        <div class="metric">
+            <h2 id="rule-count">0</h2>
+            <p>Rules</p>
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h2>Association Rules</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Antecedent</th>
+                    <th>Consequent</th>
+                    <th>Support</th>
+                    <th>Confidence</th>
+                    <th>Lift</th>
+                </tr>
+            </thead>
+
+            <tbody id="rules-body"></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- ───────────────────────────────────── -->
+<!-- Recommended Parameters Section -->
+<!-- ───────────────────────────────────── -->
+
+<div class="recommendation-section">
+
+    <div class="recommendation-card">
+
+        <h2>📊 Recommended Apriori Parameters</h2>
+
+        <p>
+            Choose suitable Support and Confidence values
+            based on dataset size for better association rules.
+        </p>
+
+        <table class="recommendation-table">
+
+            <thead>
+                <tr>
+                    <th>Dataset Size</th>
+                    <th>Support</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>Small (10–20)</td>
+                    <td>30%</td>
+                    <td>60%</td>
+                </tr>
+
+                <tr>
+                    <td>Medium (50–100)</td>
+                    <td>5%</td>
+                    <td>30%</td>
+                </tr>
+
+                <tr>
+                    <td>Large (500+)</td>
+                    <td>1%</td>
+                    <td>20%</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <div class="formula-box">
+
+            <h3>📘 Formula Used</h3>
+
+            <p>
+                Support(A) = Count(A) / Total Transactions
+            </p>
+
+            <p>
+                Confidence(A→B) =
+                Support(A ∪ B) / Support(A)
+            </p>
+
+            <p>
+                Lift(A→B) =
+                Confidence(A→B) / Support(B)
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+let lastResult = null;
+
+document.getElementById('support').oninput = function(){
+    document.getElementById('support-val').innerText =
+        this.value + '%';
+};
+
+document.getElementById('confidence').oninput = function(){
+    document.getElementById('confidence-val').innerText =
+        this.value + '%';
+};
+
+async function loadDefault(){
+
+    const res = await fetch('/api/default_transactions');
+
+    const data = await res.json();
+
+    document.getElementById('txn-input').value =
+        data.transactions;
+}
+
+function pills(items){
+    return items.map(i =>
+        `<span class="pill">${i}</span>`
+    ).join('');
+}
+
+async function runMining(){
+
+    const support =
+        parseInt(document.getElementById('support').value)/100;
+
+    const confidence =
+        parseInt(document.getElementById('confidence').value)/100;
+
+    const txns =
+        document.getElementById('txn-input').value;
+
+    const res = await fetch('/api/mine',{
+
+        method:'POST',
+
+        headers:{
+            'Content-Type':'application/json'
+        },
+
+        body:JSON.stringify({
+            min_support:support,
+            min_confidence:confidence,
+            transactions:txns
+        })
+
+    });
+
+    const data = await res.json();
+
+    lastResult = data;
+
+    document.getElementById('txn-count').innerText =
+        data.num_transactions;
+
+    document.getElementById('item-count').innerText =
+        data.num_items;
+
+    document.getElementById('freq-count').innerText =
+        data.num_frequent;
+
+    document.getElementById('rule-count').innerText =
+        data.num_rules;
+
+    const body = document.getElementById('rules-body');
+
+    body.innerHTML = '';
+
+    data.rules.forEach(r => {
+
+        body.innerHTML += `
+        <tr>
+            <td>${pills(r.antecedent)}</td>
+            <td>${pills(r.consequent)}</td>
+            <td>${r.support}</td>
+            <td>${r.confidence}</td>
+            <td>${r.lift}</td>
+        </tr>
+        `;
+    });
+}
+
+function downloadRules(){
+
+    if(!lastResult){
+        alert("Run mining first");
+        return;
+    }
+
+    let csv =
+        "Antecedent,Consequent,Support,Confidence,Lift\n";
+
+    lastResult.rules.forEach(r => {
+
+        csv += `"${r.antecedent.join(' ')}",
+"${r.consequent.join(' ')}",
+${r.support},
+${r.confidence},
+${r.lift}\n`;
+
+    });
+
+    const blob =
+        new Blob([csv], {type:'text/csv'});
+
+    const a = document.createElement('a');
+
+    a.href = URL.createObjectURL(blob);
+
+    a.download = 'rules.csv';
+
+    a.click();
+}
+
+function toggleTheme(){
+
+    document.body.classList.toggle('dark');
+
+    const btn = document.getElementById('theme-btn');
+
+    if(document.body.classList.contains('dark')){
+
+        btn.innerHTML = '☀️ Light Mode';
+
+    } else {
+
+        btn.innerHTML = '🌙 Dark Mode';
+    }
+}
+
+
+
+loadDefault();
+
+</script>
+
+</body>
+</html>
